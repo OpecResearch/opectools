@@ -1,0 +1,159 @@
+# =============================================================================
+# opectools analysis configuration
+# -----------------------------------------------------------------------------
+# All study-specific decisions live here. The analysis code does not change
+# between studies. Paths are relative to this file.
+# Column names used in formulas are the STANDARD names (see catch_schema()):
+#   count, effort, site, location, unit_id, method, species
+# plus variables created automatically:
+#   season, period (YYYY-MM factor), month, time (factor for ar1()),
+#   time_index, series (site x location x unit_id), <covariate>_z
+# =============================================================================
+
+project: "Example study (simulated data)"
+output_dir: results
+
+data:
+  # Option A: a CSV/XLSX already in the standard format
+  catch: data/example_catch.csv
+  # column_map:            # rename source columns -> standard names
+  #   site: community
+  #   count: mosquito_count
+  #   effort: room_days
+  # constants:             # add constant columns if absent
+  #   method: CDC
+  #   effort: 3
+  covariates: data/example_monthly_covariates.csv   # optional; joined by period
+  covariate_join: period
+  # Option B: messy source files -> write import.R defining import_data(config)
+  # import_script: import.R
+
+time:
+  # study_start: "2020-08"     # only needed if data have month names but no year
+  seasons:
+    Wet: [Apr, May, Jun, Jul, Aug, Sep, Oct]
+    Dry: [Nov, Dec, Jan, Feb, Mar]
+  reference_season: Dry
+
+validation:
+  stop_on_fail: true           # stop on negative counts, bad effort, bad dates
+
+analyses:
+
+  # ---------------------------------------------------------------------------
+  # Light-trap catches: season and indoor/outdoor location
+  # ---------------------------------------------------------------------------
+  trap_season:
+    method: CDC
+    sampling_unit: [site, period, location]      # species rows are summed
+    reference_location: Outdoor
+    validation:
+      expected_grid: [site, period, location]
+    exclusive_terms:
+      - [season, rainfall, rainfall_z]           # never in the same model
+    candidates:
+      nb:
+        formula: "count ~ season * location + site + (1 | period)"
+        family: nbinom2
+      zinb:
+        formula: "count ~ season * location + site + (1 | period)"
+        zi: "~ location"
+        family: nbinom2
+      zinb_additive:
+        formula: "count ~ season + location + site + (1 | period)"
+        zi: "~ location"
+        family: nbinom2
+    # Set AFTER reviewing comparison + diagnostics. Leave empty to only compare.
+    primary: zinb
+    lrt:
+      - [zinb_additive, zinb]                    # tests season x location
+    effects:
+      - specs: "season | location"
+        component: cond          # rate ratios (count process)
+        adjust: none
+      - specs: "location | season"
+        component: cond
+        adjust: none
+      - specs: "season | location"
+        component: response      # expected counts incl. extra zeros (differences)
+        adjust: none
+      - specs: "location"
+        component: zi            # probability of an extra zero
+    diagnostics:
+      n_sim: 1000
+      seed: 12345
+      plot_vs: [site, location, season]
+    correlations:
+      response: count
+      predictors: [rainfall, temperature, rh]
+    lag_regression:
+      outcome: malaria_rate
+      predictors: [count]
+      max_lag: 2
+      hac_lag: 1
+      log1p: true
+
+  # ---------------------------------------------------------------------------
+  # Light-trap catches: climate (separate from the season model)
+  # ---------------------------------------------------------------------------
+  trap_climate:
+    method: CDC
+    sampling_unit: [site, period, location]
+    reference_location: Outdoor
+    standardise: [rainfall, temperature, rh]     # creates rainfall_z etc.
+    exclusive_terms:
+      - [season, rainfall, rainfall_z]
+    candidates:
+      zinb_month:
+        formula: "count ~ rainfall_z + temperature_z + rh_z + location + site + (1 | period)"
+        zi: "~ location"
+        family: nbinom2
+      zinb_ar1:
+        formula: "count ~ rainfall_z + temperature_z + rh_z + location + site + ar1(time + 0 | series)"
+        zi: "~ location"
+        family: nbinom2
+    primary: zinb_month
+    rate_ratios:
+      - {term: rainfall_z, multiplier: 1, label: "per 1 SD rainfall"}
+      - {term: temperature_z, multiplier: 1, label: "per 1 SD temperature"}
+      - {term: rh_z, multiplier: 1, label: "per 1 SD relative humidity"}
+    diagnostics:
+      n_sim: 1000
+      seed: 12345
+      plot_vs: [rainfall, temperature, rh]
+
+  # ---------------------------------------------------------------------------
+  # Household resting collections (e.g. PSC): indoor resting density
+  # ---------------------------------------------------------------------------
+  resting_season:
+    method: PSC
+    sampling_unit: [site, unit_id, period]
+    sum_vars: [blood_fed, half_gravid, gravid, unfed]
+    validation:
+      expected_units: {by: [site, period], units: 10}
+      sum_checks:
+        - {total: count, parts: [blood_fed, half_gravid, gravid, unfed]}
+    candidates:
+      poisson:
+        formula: "count ~ season + site + (1 | period)"
+        family: poisson
+      nb:
+        formula: "count ~ season + site + (1 | period)"
+        family: nbinom2
+      compois:
+        formula: "count ~ season + site + (1 | period)"
+        family: compois
+      nb_household:
+        formula: "count ~ season + site + (1 | unit_id) + (1 | period)"
+        family: nbinom2
+    primary: nb_household
+    effects:
+      - specs: "season"
+        component: cond
+      - specs: "site"
+        component: cond
+        adjust: tukey
+    diagnostics:
+      n_sim: 1000
+      seed: 12345
+      plot_vs: [site, season]

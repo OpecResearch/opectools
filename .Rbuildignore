@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^data-raw$
+^docs$
+^LICENSE\.md$
+^CITATION\.cff$
+^README\.md$
+^NEWS\.md$
+^results$

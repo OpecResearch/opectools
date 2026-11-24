@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rcheck/
+*.tar.gz
+# Never commit real data or results
+/data/
+results/
+*.xlsx
+!inst/extdata/*.xlsx
+.DS_Store

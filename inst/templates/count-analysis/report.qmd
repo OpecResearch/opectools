@@ -1,0 +1,94 @@
+---
+title: "Mosquito catch analysis"
+subtitle: "Generated with opectools"
+date: today
+format:
+  html:
+    toc: true
+    embed-resources: true
+  docx: default
+params:
+  config: "config.yml"
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(opectools)
+res <- run_analysis(params$config)
+fmt <- function(x, digits = 3) {
+  x <- as.data.frame(x)
+  num <- vapply(x, is.numeric, logical(1))
+  x[num] <- lapply(x[num], function(v) signif(v, digits))
+  knitr::kable(x)
+}
+section <- function(title, x, digits = 3) {
+  if (is.null(x) || !nrow(as.data.frame(x))) return(invisible())
+  cat("\n\n####", title, "\n\n")
+  print(fmt(x, digits))
+}
+```
+
+**Project:** `r res$config$project`
+**Configuration:** `r basename(res$config$.config_path)`
+**Package version:** opectools `r as.character(utils::packageVersion("opectools"))`
+
+## Data quality checks
+
+```{r qa}
+fmt(res$qa)
+```
+
+Collection methods are analysed separately and are never pooled for inference.
+
+```{r analyses, results = "asis", fig.width = 8, fig.height = 4.5}
+for (a in res$analyses) {
+  cat("\n\n## Analysis:", a$name, "\n\n")
+  cat("Method:", paste(unlist(a$config$method), collapse = ", "),
+      "| Sampling unit:", paste(unlist(a$config$sampling_unit), collapse = " x "),
+      "| Units analysed:", nrow(a$units), "\n\n")
+  section("Analysis-specific QA", a$qa)
+  section("Species composition", a$composition)
+  section("Diversity", a$diversity)
+  section("Catch summary by group", a$summary_groups)
+  print(a$trend_plot)
+
+  cat("\n\n### Model comparison\n\n")
+  cat("Information criteria are shown only for models that converged with a",
+      "positive-definite Hessian. AIC guides, but does not replace, the",
+      "analyst's choice of primary model.\n\n")
+  print(fmt(a$comparison[, c("model", "family", "zi", "n", "converged",
+                             "pd_hessian", "df", "logLik", "AIC", "delta_AIC", "note")]))
+  section("Likelihood-ratio tests", a$lrt)
+  section("Simulation-based residual diagnostics (DHARMa)",
+          a$diagnostics[, intersect(c("model", "test", "statistic", "p_value"),
+                                    names(a$diagnostics))])
+  if (nrow(a$warnings)) section("Fitting warnings", a$warnings)
+
+  if (is.null(a$primary)) {
+    cat("\n\n> **No primary model designated.** Review the comparison and",
+        "diagnostics above, then set `primary:` in the configuration.\n\n")
+  } else {
+    cat("\n\n### Primary model:", a$primary, "\n\n")
+    cat("`", deparse1(a$fits[[a$primary]]$formula), "`\n\n")
+    if (!is.null(a$fits[[a$primary]]$spec$zi)) cat("Zero-inflation: `", a$fits[[a$primary]]$spec$zi, "`\n\n")
+    section("Coefficients (exponentiated = rate ratios / odds ratios)",
+            a$coefficients[a$coefficients$model == a$primary, -1])
+    section("Estimated marginal means", a$means)
+    section("Contrasts", a$contrasts)
+    section("Rate ratios for continuous predictors", a$rate_ratios)
+    section("Collinearity (adjusted GVIF)", a$vif)
+  }
+  section("Descriptive correlations (period level)", a$correlations)
+  section("Exploratory lagged regressions", a$lag_regressions)
+}
+```
+
+## Reproducibility
+
+```{r session}
+cat(paste(capture.output(res$session)[1:3], collapse = "\n"))
+```

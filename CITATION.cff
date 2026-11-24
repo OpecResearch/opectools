@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "opectools: Reusable Analysis Workflows for Entomological Surveillance Data"
+version: 0.1.0
+date-released: 2026-11-25
+license: MIT
+repository-code: "https://github.com/OpecResearch/opectools"
+authors:
+  - family-names: Okeke
+    given-names: Peter Chukwunwendu
+    affiliation: "Opec Research Consult"
+  - name: "Opec Research Consult"
+keywords:
+  - medical entomology
+  - malaria vectors
+  - mosquito surveillance
+  - count models
+  - reproducible research
