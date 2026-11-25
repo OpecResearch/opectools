@@ -71,6 +71,15 @@ causal and are confounded by shared seasonality.
 Generalised VIFs are computed from an auxiliary linear model with the same fixed
 effects (the design matrix is what matters). Adjusted GVIF = GVIF^(1/(2·Df)).
 
+## Figures
+
+Figure 3 shows all effects as **rate ratios on one log scale** (count component,
+per unit effort), so effects from different collection methods and from climate
+models can be compared directly. Differences in expected counts (including
+zero inflation) remain available in `contrasts.csv` for the supplement.
+Species names are italicised automatically (genus and epithet; qualifiers such
+as s.l. or group upright).
+
 ## Reproducibility
 
 DHARMa diagnostics use a fixed, configurable seed. Each run writes

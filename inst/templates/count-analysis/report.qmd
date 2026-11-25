@@ -44,6 +44,21 @@ fmt(res$qa)
 
 Collection methods are analysed separately and are never pooled for inference.
 
+## Figures
+
+```{r figures, results = "asis"}
+captions <- c(
+  composition = "Figure 1. Species composition by site and collection method (A) and total catch per species on a log scale (B).",
+  seasonal = "Figure 2. Catch per unit effort over the study period for each collection method, with monthly climate.",
+  effects = "Figure 3. Adjusted rate ratios with 95% confidence intervals from the primary model of each analysis.",
+  diagnostics = "Figure S1. Simulation-based (DHARMa) residual diagnostics for each primary model.",
+  model_comparison = "Figure S2. AIC differences among candidate models.",
+  stages = "Figure S3. Abdominal status of resting mosquitoes by site and season.")
+for (f in names(res$figures)) {
+  cat("\n\n![", captions[[f]], "](", res$figures[[f]], ")\n\n", sep = "")
+}
+```
+
 ```{r analyses, results = "asis", fig.width = 8, fig.height = 4.5}
 for (a in res$analyses) {
   cat("\n\n## Analysis:", a$name, "\n\n")

@@ -280,6 +280,10 @@ run_analysis <- function(config, write = TRUE) {
   names(analyses) <- names(config$analyses)
   res <- list(config = config, qa = qa, data = dat, analyses = analyses,
               session = utils::sessionInfo())
+  if (write && !isFALSE(config$figures)) {
+    message("== Figures")
+    res$figures <- write_figures(res, file.path(out, "figures"), config$figures)
+  }
   if (write) write_results(res, out)
   message("Done. Outputs in: ", out)
   invisible(res)

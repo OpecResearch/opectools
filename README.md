@@ -25,7 +25,8 @@ It handles the workflow from raw field data to manuscript tables:
 | **Model checking** | Convergence and Hessian checks, AIC/BIC comparison, likelihood-ratio tests, DHARMa simulation diagnostics, collinearity screening |
 | **Effects** | Estimated marginal means and contrasts (rate ratios per unit effort, or differences in expected counts), rate ratios for climate variables |
 | **Exploratory** | Period-level climate correlations; lagged regressions of incidence on abundance with Newey–West SEs |
-| **Outputs** | CSV tables, Excel workbook, figures, diagnostics plots, `sessionInfo`, and a Quarto report |
+| **Figures** | Publication-ready figures (PNG/PDF/TIFF): species composition, seasonal trajectories with climate, a forest plot of adjusted rate ratios, and supplementary diagnostics, model-comparison and abdominal-status plots |
+| **Outputs** | CSV tables, Excel workbook, figures, `sessionInfo`, and a Quarto report |
 
 Built-in safeguards reflect good practice in vector ecology: **collection methods are never pooled**,
 variables declared mutually exclusive (e.g. *season* and *rainfall*) cannot enter the same model,
@@ -99,6 +100,24 @@ run_diagnostics(fit)$tests
 emm_effects(fit, "season", component = "cond")$contrasts
 diversity_indices(c(2865, 64, 38, 25, 21))
 ```
+
+## Figures
+
+`run_analysis()` writes these to `results/figures/` and the report includes them:
+
+| File | Content |
+|---|---|
+| `Figure_1_species_composition` | Share of catch by species per site and method, with n; catch per species on a log scale so rare species stay visible |
+| `Figure_2_seasonal_trajectories` | Catch per unit effort by month for each method (each with its own denominator), then rainfall, temperature and humidity |
+| `Figure_3_adjusted_rate_ratios` | Forest plot of rate ratios (95% CI) from every primary model on one log scale: season, location and climate effects |
+| `Figure_S1_model_diagnostics` | DHARMa QQ and residual-vs-predicted plots with test p-values |
+| `Figure_S2_model_comparison` | AIC differences among candidate models, primary model highlighted |
+| `Figure_S3_abdominal_status` | Unfed / blood-fed / half-gravid / gravid by site and season (when stage counts are present) |
+
+Each figure is also available as a function (`plot_composition()`, `plot_seasonal()`,
+`plot_effects()`, `plot_diagnostics()`, `plot_model_comparison()`, `plot_stages()`)
+returning a ggplot/patchwork object you can modify. Colours, site order, labels,
+formats and resolution are set in the `figures:` section of `config.yml`.
 
 ## Documentation
 

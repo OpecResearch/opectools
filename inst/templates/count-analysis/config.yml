@@ -38,12 +38,26 @@ time:
 validation:
   stop_on_fail: true           # stop on negative counts, bad effort, bad dates
 
+# Figures are written to results/figures/. Remove this section for defaults,
+# or set `figures: false` to skip them.
+figures:
+  include: [composition, seasonal, effects, diagnostics, model_comparison, stages]
+  formats: [png, pdf]          # add tiff for journals that require it
+  dpi: 300                     # 600 for print submission
+  # site_order: [Site A, Site B, Site C, Site D]
+  # site_colours: {Site A: "#1B9E77", Site B: "#D95F02"}
+  location_colours: {Indoor: "#0072B2", Outdoor: "#D55E00"}
+  climate_vars: [rainfall, temperature, rh]
+  # labels: {rh: "Relative humidity"}   # display names for variables
+
 analyses:
 
   # ---------------------------------------------------------------------------
   # Light-trap catches: season and indoor/outdoor location
   # ---------------------------------------------------------------------------
   trap_season:
+    label: "Season and location"              # used in figures
+    effort_label: trap-night
     method: CDC
     sampling_unit: [site, period, location]      # species rows are summed
     reference_location: Outdoor
@@ -97,6 +111,8 @@ analyses:
   # Light-trap catches: climate (separate from the season model)
   # ---------------------------------------------------------------------------
   trap_climate:
+    label: "Climate"              # used in figures
+    effort_label: trap-night
     method: CDC
     sampling_unit: [site, period, location]
     reference_location: Outdoor
@@ -126,6 +142,8 @@ analyses:
   # Household resting collections (e.g. PSC): indoor resting density
   # ---------------------------------------------------------------------------
   resting_season:
+    label: "Season"              # used in figures
+    effort_label: room-day
     method: PSC
     sampling_unit: [site, unit_id, period]
     sum_vars: [blood_fed, half_gravid, gravid, unfed]
@@ -153,6 +171,7 @@ analyses:
       - specs: "site"
         component: cond
         adjust: tukey
+        figure: false            # keep pairwise site contrasts out of Figure 3
     diagnostics:
       n_sim: 1000
       seed: 12345

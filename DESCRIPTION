@@ -1,7 +1,7 @@
 Package: opectools
 Type: Package
 Title: Reusable Analysis Workflows for Entomological Surveillance Data
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person("Peter Chukwunwendu", "Okeke", role = c("aut", "cre"),
            email = "your.email@example.com"),
@@ -12,7 +12,8 @@ Description: Configurable, reproducible workflows for analysing mosquito and
     (Poisson, negative binomial, COM-Poisson and zero-inflated mixed models via
     glmmTMB) with offsets for sampling effort, simulation-based residual
     diagnostics (DHARMa), estimated marginal means and contrasts, climate
-    correlations and lagged associations with disease incidence. Study-specific
+    correlations and lagged associations with disease incidence, and
+    publication-ready figures. Study-specific
     decisions live in a YAML configuration file rather than in the code.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -27,7 +28,9 @@ Imports:
     glmmTMB,
     graphics,
     grDevices,
+    patchwork,
     rlang,
+    scales,
     stats,
     tibble,
     utils,
