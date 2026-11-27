@@ -4,7 +4,7 @@ Title: Reusable Analysis Workflows for Entomological Surveillance Data
 Version: 0.2.0
 Authors@R: c(
     person("Peter Chukwunwendu", "Okeke", role = c("aut", "cre"),
-           email = "your.email@example.com"),
+           email = "peterokekec@gmail.com"),
     person("Opec Research Consult", role = c("cph", "fnd")))
 Description: Configurable, reproducible workflows for analysing mosquito and
     other arthropod catch data: data standardisation and quality control,
